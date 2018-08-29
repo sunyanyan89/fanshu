@@ -1,8 +1,8 @@
 <template>
     <div class="container">
         <el-menu :router="true" :default-active="activeIndex" class="el-menu" mode="horizontal" @select="handleSelect">
-            <el-menu-item index="/" class="logo"> 番薯</el-menu-item>
-            <el-menu-item index="/article?type=all"><icon name="flag"/> 探索</el-menu-item>
+            <el-menu-item index="/" class="logo"> fanshu</el-menu-item>
+            <el-menu-item index="/article?type=all"><icon name="file-alt"/> 文章</el-menu-item>
             
             <template v-if="user">
                 <li class="el-menu-item right" @click="signout"><icon name="sign-out-alt"/> 注销</li>
@@ -10,7 +10,11 @@
                     <span slot="title">{{ user.getUsername() }}</span>
                     <el-menu-item index="/article/add">发布文章</el-menu-item>
                     <el-menu-item index="/article?type=me">我的文章</el-menu-item>
-                    <el-menu-item index="5-3">消息</el-menu-item>
+                    <el-menu-item index="6" :route="{name:'User', params: {id:user.id}}">我的主页</el-menu-item>
+                    <el-menu-item index="6" :route="{name:'Followee', params: {id:user.id}}">我的关注</el-menu-item>
+                    <el-menu-item index="6" :route="{name:'Follower', params: {id:user.id}}">我的粉丝</el-menu-item>
+                    <el-menu-item index="6" route="/friend">我的朋友圈</el-menu-item>
+                    <el-menu-item index="6" route="/message">我的消息</el-menu-item>
                 </el-submenu>
             </template>
             <template v-else>
@@ -47,6 +51,7 @@ export default {
       this.exit();
       this.$api.SDK.User.logOut(); // SDK的退出， 清除缓存
       this.$message.success("注销成功");
+      this.$router.replace("/");
     }
   }
 };

@@ -3,7 +3,7 @@
         <template v-if="article">
             <h2>{{ article.get('title') }}</h2>
             <div class="push-right" v-if="uid === article.get('author').id">
-                <el-button type="primary" size="small">修改</el-button>
+                <router-link class="el-button el-button--primary el-button--small" tag="button" :to="{name: 'ArticleEdit', params: {id: article.id}}">修改</router-link>
                 <el-button type="danger" size="small" @click="destory">删除</el-button>
             </div>
             <div class="content" v-html="article.get('content')"></div>

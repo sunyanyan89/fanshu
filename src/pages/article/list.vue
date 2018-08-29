@@ -3,20 +3,17 @@
     <header>
       <h2>{{title}}</h2>
     </header>
-    <section>
-      <article v-for="article in articles" :key="article.id">
-        <h3>
-          <router-link :to="{name: 'ArticleDetail', params: { id: article.id}}">{{article.get('title')}}</router-link>
-        </h3>
-      </article>
-    </section>
+    <Articles :articles="articles"/>
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
+import Articles from "@/components/Articles";
+
 export default {
   name: "ArticleList",
+  components: { Articles },
   data() {
     return {
       title: "",
@@ -28,7 +25,6 @@ export default {
   },
   watch: {
     ["$route.query"]() {
-      console.log("re render");
       this.articles = [];
       this.match();
     }
@@ -97,7 +93,6 @@ export default {
 h2 {
   text-align: center;
 }
-
 header {
   border-bottom: 1px solid #f2f2f2;
   margin-bottom: 5px;

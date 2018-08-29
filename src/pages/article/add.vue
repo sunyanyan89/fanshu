@@ -118,6 +118,21 @@ export default {
         .save()
         .then(article => {
           const message = `文章《${article.get("title")}》发布成功`;
+
+          // 发布一篇文章时，同步到朋友圈
+          const status = new this.$api.SDK.Status();
+          status.inboxType = "friend";
+          status.set("title", article.get("title"));
+          status.set("type", "create_article");
+          status.set("article", article);
+          this.$api.SDK.Status.sendStatusToFollowers(status).then(
+            status => {
+              // 发布状态成功，返回状态信息
+              console.dir(status);
+            },
+            err => console.dir(err) //发布失败
+          );
+
           this.$message({ message, type: "success" });
           this.$router.replace({
             name: "ArticleDetail",

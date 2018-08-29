@@ -19,17 +19,14 @@
           <div v-if="validate.error" class="el-form-item__error">正文怎能没有内容呢？</div>
         </div>
       </div>
-
       <div class="mt20 push-right">
-        <el-button class="submit" type="primary" @click="submit" @keyup.enter="submit">发布文章</el-button>
+        <el-button class="submit" type="primary" @click="submit" @keyup.enter="submit">修改文章</el-button>
       </div>
-
     </el-form>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
 import E from "wangeditor";
 
 let editor = null;
@@ -37,6 +34,7 @@ export default {
   name: "ArticleEdit",
   data() {
     return {
+      article: null,
       categorys: [],
       form: {
         category: null,
@@ -62,14 +60,51 @@ export default {
   },
   created() {
     this.getCategory();
+    this.getArticle();
   },
   mounted() {
     this.initEditor();
   },
-  computed: mapState(["user"]),
   methods: {
-    content() {
+    getContent() {
       return editor.txt.html();
+    },
+    setContent(html) {
+      return editor.txt.html(html);
+    },
+    getArticle() {
+      const id = this.$route.params.id;
+      let q = new this.$api.SDK.Query("Article");
+      q.include("category");
+      q.get(id).then(article => {
+        this.article = article;
+        this.form.title = article.get("title");
+        const cid = article.get("category").id;
+        this.wait(this.categorys.length).then(() => {
+          const index = this.categorys.findIndex(c => c.id == cid);
+          this.form.category = this.categorys[index];
+        });
+        this.wait(editor).then(() => {
+          this.setContent(article.get("content"));
+        });
+        this.$Progress.finish();
+      });
+    },
+    wait(flag) {
+      return new Promise((reslove, reject) => {
+        let timer = null;
+        if (flag) {
+          reslove();
+        } else {
+          timer = setInterval(() => {
+            if (!flag) {
+              return;
+            }
+            reslove();
+            clearInterval(timer);
+          }, 500);
+        }
+      });
     },
     initEditor() {
       editor = new E(this.$refs.editor);
@@ -84,41 +119,34 @@ export default {
         .find()
         .then(categorys => {
           this.categorys = categorys;
-          this.form.category = categorys[0];
-          this.$Progress.finish();
         })
         .catch(console.error);
     },
     validateContent() {
-      if (this.content() == "<p><br></p>") {
+      if (!this.getContent() || this.getContent() === "<p><br></p>") {
         this.validate.error = true;
         return false;
       }
       this.validate.error = false;
       return true;
     },
-    createArticle() {
-      const article = new this.$api.SDK.Object("Article");
-      article.set("author", this.user);
+    setArticle() {
+      const article = this.article;
       article.set("title", this.form.title);
-      article.set("content", this.content());
+      article.set("content", this.getContent());
       article.set("category", this.form.category);
       return article;
-    },
-    setACL(article) {
-      // 设置访问权限
-      // https://leancloud.cn/docs/acl-guide.html#单用户权限设置
-      let acl = new this.$api.SDK.ACL();
-      acl.setPublicReadAccess(true);
-      acl.setWriteAccess(this.user, true);
-      article.setACL(acl);
     },
     save(article) {
       article
         .save()
         .then(article => {
-          const message = `文章《${article.get("title")}》发布成功`;
+          const message = `文章《${article.get("title")}》修改成功`;
           this.$message({ message, type: "success" });
+          this.$router.replace({
+            name: "ArticleDetail",
+            params: { id: article.id }
+          });
         })
         .catch(console.error);
     },
@@ -126,8 +154,7 @@ export default {
       this.$refs.form.validate(valid => {
         const me = this.validateContent();
         if (valid && me) {
-          const article = this.createArticle();
-          this.setACL(article);
+          const article = this.setArticle();
           this.save(article);
         } else {
           this.$message.error("错了哦，您填写的信息有错误，请按照提示修改。");

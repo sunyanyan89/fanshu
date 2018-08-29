@@ -1,16 +1,16 @@
 <template>
-    <div class="container">
-        <header>
-            <h2>{{title}}</h2>
-        </header>
-        <section>
-            <article v-for="article in articles" :key="article.id">
-                <h3>
-                    <router-link :to="{name: 'ArticleShow', params: { id: article.id}}">{{article.get('title')}}</router-link>
-                </h3>
-            </article>
-        </section>
-    </div>
+  <div class="container">
+    <header>
+      <h2>{{title}}</h2>
+    </header>
+    <section>
+      <article v-for="article in articles" :key="article.id">
+        <h3>
+          <router-link :to="{name: 'ArticleDetail', params: { id: article.id}}">{{article.get('title')}}</router-link>
+        </h3>
+      </article>
+    </section>
+  </div>
 </template>
 
 <script>
@@ -37,6 +37,7 @@ export default {
   methods: {
     match() {
       let flag = this.$route.query.type || this.$route.query.cid;
+      this.$Progress.start();
       switch (flag) {
         case "me":
           this.getMyArticles();
@@ -62,12 +63,14 @@ export default {
       q
         .find()
         .then(articles => {
-          this.article = articles;
+          this.articles = articles;
+          this.$Progress.finish();
         })
         .catch(this.fail);
     },
     fail(error) {
       this.$message.error(error);
+      this.$Progress.fail();
     },
     getAllArticles() {
       this.title = "所有文章";

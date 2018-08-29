@@ -34,7 +34,7 @@ import E from "wangeditor";
 
 let editor = null;
 export default {
-  name: "create",
+  name: "ArticleEdit",
   data() {
     return {
       categorys: [],
@@ -119,10 +119,6 @@ export default {
         .then(article => {
           const message = `文章《${article.get("title")}》发布成功`;
           this.$message({ message, type: "success" });
-          this.$router.replace({
-            name: "ArticleDetail",
-            params: { id: article.id }
-          });
         })
         .catch(console.error);
     },
@@ -134,7 +130,6 @@ export default {
           this.setACL(article);
           this.save(article);
         } else {
-          console.log("error submit!!");
           this.$message.error("错了哦，您填写的信息有错误，请按照提示修改。");
           return false;
         }
